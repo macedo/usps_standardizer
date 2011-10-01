@@ -4,7 +4,7 @@ require "usps_standardizer/version"
 
 Gem::Specification.new do |s|
   s.name        = "usps_standardizer"
-  s.version     = UspsStandardizer::VERSION::STRING
+  s.version     = UspsStandardizer::Version::STRING
   s.authors     = ["Rafael Macedo"]
   s.email       = ["macedo.rafaelfernandes@gmail.com"]
   s.homepage    = "http://github.com/rafaelmacedo/usps_standardizer"
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
+  s.add_development_dependency "rspec", "~> 2.6.0"
   # s.add_runtime_dependency "rest-client"
 end
 

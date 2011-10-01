@@ -1,5 +1,4 @@
-require "usps_standardizer/version"
-
 module UspsStandardizer
-  # Your code goes here...
+  autoload :Version, "usps_standardizer/version"
 end
+
