@@ -1,4 +1,4 @@
-module UspsStandardizer
+module USPSStandardizer
   module Version
     MAJOR  = 0
     MINOR  = 1
