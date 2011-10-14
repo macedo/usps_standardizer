@@ -37,7 +37,7 @@ module USPSStandardizer
           @city, @state, @zipcode = $1, $2, $3
         end
 
-        results << {:address => @address, :city => @city, :state => @state, :county => @county}
+        results << {:address => @address, :city => @city, :state => @state, :county => @county, :zipcode => @zipcode}
         results
       end
     end
