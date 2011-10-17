@@ -12,7 +12,7 @@
 Or you can pass your own Mechanize object to fetch the information
 
   $ require 'usps_standardizer'
-  $ require 'mechanize'  $
+  $ require 'mechanize'
   $ browser = Mechanize.new { |agent| agent.user_agent_alias = 'Mac Safari' }
   $ result = USPSStandardizer.lookup_for({:address => '6216 eddington drive', :state => 'oh', :city => 'middletown'}, browser)
 

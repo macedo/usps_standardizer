@@ -17,14 +17,14 @@ module USPSStandardizer
     end
 
     def std_address
-      return [] unless (content = get_std_address_content)
+      return {} unless (content = get_std_address_content)
 
       content.gsub!(/\t|\n|\r/, '')
       content.squeeze!(" ").strip!
 
       raw_matches = content.scan(%r{<td headers="\w+" height="34" valign="top" class="main" style="background:url\(images/table_gray\.gif\); padding:5px 10px;">(.*?)>Mailing Industry Information</a>}mi)
 
-      raw_matches.inject([]) do |results, raw_match|
+      raw_matches.inject({}) do |results, raw_match|
         if raw_match[0] =~ /mailingIndustryPopup2\(([^\)]*)/i
           @county = $1.split(',')[1].gsub(/'/, '')
         end
@@ -37,7 +37,7 @@ module USPSStandardizer
           @city, @state, @zipcode = $1, $2, $3
         end
 
-        results << {:address => @address, :city => @city, :state => @state, :county => @county, :zipcode => @zipcode}
+        results = {:address => @address, :city => @city, :state => @state, :county => @county, :zipcode => @zipcode}
         results
       end
     end
