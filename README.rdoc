@@ -5,6 +5,17 @@
   $ require 'usps_standardizer'
   $ gem install usps_standardizer
 
+== Configuration
+
+=== Caching
+
+It’s a good idea, when relying on any external service, to cache retrieved data.
+When implemented correctly it improves your app’s response time and stability.
+It’s easy to cache usps results with USPSStandardizer, just configure a cache store:
+
+  $ USPSStandardizer::Configuration.cache = Redis.new
+  $ USPSStandardizer::Configuration.cache_prefix = "wyw"
+
 == Usage
 
   $ result = USPSStandardizer.lookup_for(:address => '6216 eddington drive', :state => 'oh', :city => 'middletown')

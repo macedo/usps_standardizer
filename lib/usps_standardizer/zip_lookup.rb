@@ -4,6 +4,9 @@ require 'mechanize'
 
 module USPSStandardizer
 
+  #TODO: Change from 'mechanize' to 'net/hhtp'
+  #TODO: Implement 'timeout'
+
   class ZipLookup
 
     attr_accessor :address, :state, :city, :zipcode
@@ -17,6 +20,12 @@ module USPSStandardizer
     end
 
     def std_address
+
+      if(cache and response = cache[redis_key(@address)])
+        address, city, state, county, zipcode = response.split('::')
+        return {:address => address, :city => city, :state => state, :county => county, :zipcode => zipcode}
+      end
+
       return {} unless (content = get_std_address_content)
 
       content.gsub!(/\t|\n|\r/, '')
@@ -26,18 +35,21 @@ module USPSStandardizer
 
       raw_matches.inject({}) do |results, raw_match|
         if raw_match[0] =~ /mailingIndustryPopup2\(([^\)]*)/i
-          @county = $1.split(',')[1].gsub(/'/, '')
+          @r_county = $1.split(',')[1].gsub(/'/, '')
         end
 
-        @address, city_state_zipcode = Sanitize.clean(raw_match[0],
+        @r_address, city_state_zipcode = Sanitize.clean(raw_match[0],
                                                      :remove_contents => true,
                                                      :elements => %w[br]
                                       ).strip.split('<br>')
         if city_state_zipcode.sub_nonascii(' ').squeeze!(' ') =~ /^(.*)\s+(\w\w)\s(\d{5})(-\d{4})?/i
-          @city, @state, @zipcode = $1, $2, $3
+          @r_city, @r_state, @r_zipcode = $1, $2, $3
         end
 
-        results = {:address => @address, :city => @city, :state => @state, :county => @county, :zipcode => @zipcode}
+        results = {:address => @r_address, :city => @r_city, :state => @r_state, :county => @r_county, :zipcode => @r_zipcode}
+        if cache
+          cache[redis_key(@address)] = "#{@r_address}::#{@r_city}::#{@r_state}::#{@r_county}::#{@r_zipcode}"
+        end
         results
       end
     end
@@ -55,6 +67,15 @@ module USPSStandardizer
 
       return false unless @mechanize.page.search('p.mainRed').empty?
       @mechanize.page.body
+    end
+
+    def cache
+      USPSStandardizer.cache
+    end
+
+    private
+    def redis_key(address)
+      address.downcase.gsub(' ', '_')
     end
   end
 end
