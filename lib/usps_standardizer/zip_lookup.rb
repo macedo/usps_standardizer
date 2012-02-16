@@ -1,5 +1,4 @@
 # -*- encoding : utf-8 -*-
-require 'sanitize'
 require 'mechanize'
 
 module USPSStandardizer
@@ -29,44 +28,38 @@ module USPSStandardizer
       return {} unless (content = get_std_address_content)
 
       content.gsub!(/\t|\n|\r/, '')
-      content.squeeze!(" ").strip!
 
-      raw_matches = content.scan(%r{<td headers="\w+" height="34" valign="top" class="main" style="background:url\(images/table_gray\.gif\); padding:5px 10px;">(.*?)>Mailing Industry Information</a>}mi)
+      content.scan %r{<span class=\"address1 range\">([^<]*)}
+      @r_address = $1.gsub(/^ | $/, '')
 
-      raw_matches.inject({}) do |results, raw_match|
-        if raw_match[0] =~ /mailingIndustryPopup2\(([^\)]*)/i
-          @r_county = $1.split(',')[1].gsub(/'/, '')
-        end
+      content.scan %r{<span class=\"city range\">([^<]*)}
+      @r_city = $1.gsub(/^ | $/, '')
 
-        @r_address, city_state_zipcode = Sanitize.clean(raw_match[0],
-                                                     :remove_contents => true,
-                                                     :elements => %w[br]
-                                      ).strip.split('<br>')
-        if city_state_zipcode.sub_nonascii(' ').squeeze!(' ') =~ /^(.*)\s+(\w\w)\s(\d{5})(-\d{4})?/i
-          @r_city, @r_state, @r_zipcode = $1, $2, $3
-        end
+      content.scan %r{<span class=\"state range\">([^<]*)}
+      @r_state = $1.gsub(/^ | $/, '')
 
-        results = {:address => @r_address, :city => @r_city, :state => @r_state, :county => @r_county, :zipcode => @r_zipcode}
-        if cache
-          cache[redis_key(@address)] = "#{@r_address}::#{@r_city}::#{@r_state}::#{@r_county}::#{@r_zipcode}"
-        end
-        results
+      content.scan %r{<span class=\"zip\" style=\"\">([^<]*)}
+      @r_zipcode = $1.gsub(/^ | $/, '')
+
+      content.scan %r{<dt>County</dt><dd>([^<]*)}
+      @r_county = ($1.empty?) ? '' : $1.gsub(/^ | $/, '')
+
+
+      results = {:address => @r_address, :city => @r_city, :state => @r_state, :county => @r_county, :zipcode => @r_zipcode}
+      if cache
+        cache[redis_key(@address)] = "#{@r_address}::#{@r_city}::#{@r_state}::#{@r_county}::#{@r_zipcode}"
       end
+      results
     end
 
     private
 
     def get_std_address_content
-      search_form = @mechanize.get('http://zip4.usps.com/zip4/').forms.first
+      url = "https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=0&companyName=&address1=#{@address}&address2=&city=#{@city}&state=#{@state}&urbanCode=&postalCode=&zip="
+      @mechanize.get url
 
-      search_form.address2 = @address
-      search_form.city = @city
-      search_form.state = @state
-
-      @mechanize.submit(search_form, search_form.buttons.first)
-
-      return false unless @mechanize.page.search('p.mainRed').empty?
-      @mechanize.page.body
+      return false unless @mechanize.page.search('div#error-box').empty?
+      return @mechanize.page.search('div#result-list ul li:first').to_html
     end
 
     def cache
@@ -79,19 +72,3 @@ module USPSStandardizer
     end
   end
 end
-
-String.class_eval do
-  def sub_nonascii(replacement)
-    chars = self.split("")
-    self.slice!(0..self.size)
-    chars.each do |char|
-      if char.ord < 33 || char.ord > 127
-        self.concat(replacement)
-      else
-        self.concat(char)
-      end
-    end
-  self.to_s
-  end
-end
-

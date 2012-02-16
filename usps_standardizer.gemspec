@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "mechanize", "~> 2"
-  s.add_dependency "sanitize", "~> 2.0.3"
   s.add_development_dependency "rspec", "~> 2"
 end
 
