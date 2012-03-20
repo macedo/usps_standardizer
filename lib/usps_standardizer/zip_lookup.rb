@@ -58,7 +58,8 @@ module USPSStandardizer
       url = "https://tools.usps.com/go/ZipLookupResultsAction!input.action?resultMode=0&companyName=&address1=#{@address}&address2=&city=#{@city}&state=#{@state}&urbanCode=&postalCode=&zip=#{@zipcode}"
       @mechanize.get url
 
-      return false unless @mechanize.page.search('div#error-box').empty? || @mechanize.page.search('div#result-list ul li').count != 1
+      return false unless @mechanize.page.search('div#error-box').empty?
+      return false unless @mechanize.page.search('div#result-list ul li').count == 1
       @mechanize.page.search('div#result-list ul li:first').to_html
     end
 
