@@ -25,7 +25,7 @@ describe USPSStandardizer do
   end
 
   it "standards an address on usps website" do
-    result = USPSStandardizer.lookup_for(:address => '6216 eddington drive', :state => 'oh', :city => 'middletown')
+    result = USPSStandardizer.lookup_for(:address => '6216 eddington drive', :state => 'oh', :city => 'middletown', :zipcode => '45044')
     result[:address].should == '6216 EDDINGTON ST'
     result[:state].should == 'OH'
     result[:city].should == 'LIBERTY TOWNSHIP'

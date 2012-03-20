@@ -1,7 +1,7 @@
 module USPSStandardizer
   module Version
     MAJOR  = 0
-    MINOR  = 3
+    MINOR  = 4
     PATCH   = 1
     STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
   end
